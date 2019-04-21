@@ -3,7 +3,7 @@ Import copied table data from RadioReference into SDRTrunk
 
 ## Requirements
 - .NET 4.5.2
-- A way to compile Visual Studio source files
+- A way to compile Visual Studio source files, OR goto [releases](https://github.com/cnorton-webdev/RRtoSDRTrunk/releases) and download the latest pre-compiled version
 
 ## How to use the program
 - Download the source code files from this repo
