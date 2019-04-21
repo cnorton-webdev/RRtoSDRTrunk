@@ -21,7 +21,7 @@ namespace RRtoSDRTrunk
         private void importBtn_Click(object sender, EventArgs e)
         {
             importBtn.Enabled = false;
-            processImport(richTextBox1.Text, playListPathTxt.Text);
+            processImport(rrDataTxt.Text, playListPathTxt.Text);
             importBtn.Enabled = true;
         }
 
@@ -30,6 +30,8 @@ namespace RRtoSDRTrunk
             // Make sure we have the playlist file and the input is not empty
             if (importText.Trim() != "" && System.IO.File.Exists(playlistFile + "\\default.xml"))
             {
+                int addCount = 0;
+                int dupCount = 0;
                 XmlDocument doc = new XmlDocument();
                 // Load the SDRTrunk XML playlist file
                 doc.Load(playlistFile + "\\default.xml");
@@ -47,11 +49,13 @@ namespace RRtoSDRTrunk
                     // Check to see if we have a duplicate entry, if so don't process that entry
                     foreach (XmlNode node in xmlNodes)
                     {
+
                         string tgId = node.LastChild.Attributes.Item(1).Value;
                         string protocol = node.LastChild.Attributes.Item(2).Value;
-                        if (tgId == parts.GetValue(0).ToString() && protocol == systemTypeCmb.SelectedText)
+                        if (tgId == parts.GetValue(0).ToString() && protocol == systemTypeCmb.SelectedItem.ToString())
                         {
                             isDuplicate = true;
+                            dupCount++;
                             break;
                         }
                     }
@@ -77,6 +81,7 @@ namespace RRtoSDRTrunk
                         // SDRTrunk reads the XML file in a very specific manner, any <alias> after the channel node will result in only those <alias> entries showing up
                         // So we have to insert it before the first <channel> tag
                         playlistNode.InsertBefore(newAliasNode, channelNode);
+                        addCount++;
                     }
                 }
                 // If our backup folder does not exist create it
@@ -84,10 +89,15 @@ namespace RRtoSDRTrunk
                 {
                     System.IO.Directory.CreateDirectory(playListPathTxt.Text + "\\RRtoSDRTrunk_Backups");
                 }
-                // Save a backup of the default.xml every time we touch the file, just in case!
-                System.IO.File.Copy(playListPathTxt.Text + "\\default.xml", playListPathTxt.Text + "\\RRtoSDRTrunk_Backups\\default_backup_" + DateTime.Now.Ticks + ".xml");
-                // Write out the new XML document
-                doc.Save(playListPathTxt.Text + "\\default.xml");
+                // See if we actually imported any new data before making backup and saving
+                if (addCount > 0)
+                {
+                    // Save a backup of the default.xml every time we touch the file, just in case!
+                    System.IO.File.Copy(playListPathTxt.Text + "\\default.xml", playListPathTxt.Text + "\\RRtoSDRTrunk_Backups\\default_backup_" + DateTime.Now.Ticks + ".xml");
+                    // Write out the new XML document
+                    doc.Save(playListPathTxt.Text + "\\default.xml");
+                }
+                MessageBox.Show("Finished adding " + addCount.ToString() + " record(s) out of " + master.Count().ToString() + " record(s) to SDRTrunk." + '\n' + "Duplicate entries: " + dupCount.ToString(), "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
@@ -113,7 +123,7 @@ namespace RRtoSDRTrunk
                 playListPathTxt.Text = Properties.Settings.Default.playListPath;
             }
             // Display Information regarding RR Premium and that tool is to be used at own risk
-            MessageBox.Show("This tool is not a replacement for RadioReference Premium." + '\n' + "I still HIGHLY recommend it, but it is rather a tool to make importing into SDRTrunk easier if you do not have premium." + '\n' + '\n' + "I AM NOT RESPONSIBLE FOR ANY DAMAGE TO YOUR FILES OR TO SDRTRUNK PROGRAM THIS PROGRAM MAY CAUSE!" + '\n' + '\n' + "YOU AGREE TO USE THIS TOOL AT YOUR OWN RISK!", "Important Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("This tool is not a replacement for RadioReference Premium." + '\n' + "I still HIGHLY recommend it, but it is rather a tool to make importing into SDRTrunk easier if you do not have premium." + '\n' + '\n' + "I AM NOT RESPONSIBLE FOR ANY DAMAGE TO YOUR FILES OR TO SDRTRUNK PROGRAM THIS PROGRAM MAY CAUSE!" + '\n' + '\n' + "YOU AGREE TO USE THIS TOOL AT YOUR OWN RISK!", "Important Information", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         private void playListPathTxt_TextChanged(object sender, EventArgs e)
@@ -123,6 +133,26 @@ namespace RRtoSDRTrunk
                 Properties.Settings.Default.playListPath = playListPathTxt.Text;
                 Properties.Settings.Default.Save();
             }
+        }
+
+        private void pasteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            rrDataTxt.SelectedText = Clipboard.GetText();
+        }
+
+        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText(rrDataTxt.SelectedText);
+        }
+
+        private void selectAllToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            rrDataTxt.SelectAll();
+        }
+
+        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            rrDataTxt.Clear();
         }
     }
 }
