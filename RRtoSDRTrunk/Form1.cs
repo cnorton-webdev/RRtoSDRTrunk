@@ -49,9 +49,8 @@ namespace RRtoSDRTrunk
                     // Check to see if we have a duplicate entry, if so don't process that entry
                     foreach (XmlNode node in xmlNodes)
                     {
-
-                        string tgId = node.LastChild.Attributes.Item(1).Value;
-                        string protocol = node.LastChild.Attributes.Item(2).Value;
+                        string tgId = node.SelectSingleNode("//id[@type='talkgroup']").Attributes.Item(1).Value;
+                        string protocol = node.SelectSingleNode("//id[@type='talkgroup']").Attributes.Item(2).Value;
                         if (tgId == parts.GetValue(0).ToString() && protocol == systemTypeCmb.SelectedItem.ToString())
                         {
                             isDuplicate = true;
